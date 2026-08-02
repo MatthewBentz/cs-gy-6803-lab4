@@ -11,7 +11,7 @@ Information Systems Security Engineering and Management with Raj Rajagopalan at 
 
 ## Lab 4
 
-- [Lab 4.pdf](Lab 4.pdf)
+- [Lab 4.pdf](Lab%204.pdf)
 
 ## References
 

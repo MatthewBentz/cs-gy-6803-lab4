@@ -1,5 +1,6 @@
 from flask import render_template, Flask, request, redirect
 import os
+import hmac
 import infinc
 import SampleNetworkClient
 import sqlite3
@@ -9,28 +10,78 @@ from Crypto.Random import get_random_bytes
 
 app = Flask(__name__)
 
+# AES-EAX stores a 16-byte nonce followed by a 16-byte authentication tag
+# and then the ciphertext. The nonce must be unique for each encryption.
+PASSWORD_ENCRYPTION_KEY = bytes(
+    b'\x93n\x12\xcbC\xe0|\xd0\xa6%7(?KW\xa9\xc2\x02\x97\xc6\\\xd6\xd9c\xf4x\xb9\xe2\x89\x88<\x9d'
+)
+NONCE_SIZE = 16
+TAG_SIZE = 16
+
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# Function to encrypt the password using AES encryption
 def encrypt_password(password):
-    key = bytearray(b'\x93n\x12\xcbC\xe0|\xd0\xa6%7(?KW\xa9\xc2\x02\x97\xc6\\\xd6\xd9c\xf4x\xb9\xe2\x89\x88<\x9d')
-    nonce = b'0123456789abcdef'
-    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
-    ciphertext, tag = cipher.encrypt_and_digest(password.encode())
-    return cipher.nonce + tag + ciphertext
+    """Encrypt a password with AES-EAX using a fresh nonce every time.
 
+    The previous implementation reused a hardcoded nonce. That made encryption
+    deterministic, so encrypting the same password produced the same encrypted
+    value. AES-EAX requires a unique nonce for each encryption operation.
+    """
+    nonce = get_random_bytes(NONCE_SIZE)
+    cipher = AES.new(PASSWORD_ENCRYPTION_KEY, AES.MODE_EAX, nonce=nonce)
+    ciphertext, tag = cipher.encrypt_and_digest(password.encode("utf-8"))
+    return nonce + tag + ciphertext
 
-# Verify password
+def split_encrypted_password(encrypted_password):
+    """Split the stored password blob into nonce, tag, and ciphertext."""
+    encrypted_password = bytes(encrypted_password)
+    minimum_length = NONCE_SIZE + TAG_SIZE + 1
+    if len(encrypted_password) < minimum_length:
+        raise ValueError("Encrypted password is too short or malformed.")
+
+    nonce = encrypted_password[:NONCE_SIZE]
+    tag = encrypted_password[NONCE_SIZE:NONCE_SIZE + TAG_SIZE]
+    ciphertext = encrypted_password[NONCE_SIZE + TAG_SIZE:]
+    return nonce, tag, ciphertext
+
+def decrypt_password(encrypted_password):
+    """Decrypt and authenticate a stored AES-EAX password value."""
+    nonce, tag, ciphertext = split_encrypted_password(encrypted_password)
+    cipher = AES.new(PASSWORD_ENCRYPTION_KEY, AES.MODE_EAX, nonce=nonce)
+    plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+    return plaintext.decode("utf-8")
+
 def verify_password(conn, user_password):
+    """Verify a submitted password against the encrypted database value.
+
+    Random nonce generation means the submitted password cannot be re-encrypted
+    and compared byte-for-byte. Instead, the stored value is decrypted using the
+    nonce saved with it, and the plaintext values are compared safely.
+    """
+    if user_password is None:
+        return False, ''
+
     db_query = "SELECT * FROM users"
     db_result = conn.execute(db_query).fetchone()
-    db_password = db_result[1]
-    encrypted_password = encrypt_password(user_password)
-    if encrypted_password == db_password:
+    if db_result is None:
+        return False, ''
+
+    try:
+        db_password = db_result["password"]
+        act_token = db_result["act_token"]
+    except (IndexError, KeyError, TypeError):
+        db_password = db_result[1]
         act_token = db_result[2]
+
+    try:
+        stored_password = decrypt_password(db_password)
+    except (ValueError, UnicodeDecodeError, TypeError):
+        return False, ''
+
+    if hmac.compare_digest(stored_password, user_password):
         return True, act_token
     return False, ''
 

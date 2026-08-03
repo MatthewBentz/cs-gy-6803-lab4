@@ -184,6 +184,7 @@ class SmartNetworkThermometer(threading.Thread):
                 if session_id in self.sessions:
                     del self.sessions[session_id]
                 self.sendText("Logged Out\n", addr)
+                return # ends processing of commands after a session is invalidated
             elif c:
                 self.sendText("Invalid Command\n", addr)
 

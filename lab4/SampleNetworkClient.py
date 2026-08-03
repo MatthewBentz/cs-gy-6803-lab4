@@ -64,7 +64,7 @@ class SimpleNetworkClient:
 
     def sendAndReceive(self, p, message):
         s = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        s.settimeout(SOCKET_TIMEOUT_SECONDS)
+        s.settimeout(SOCKET_TIMEOUT_SECONDS) # socket timeout to prevent DOS attacks
         try:
             s.sendto(message.encode("utf-8"), ("127.0.0.1", p))
             msg, addr = s.recvfrom(1024)

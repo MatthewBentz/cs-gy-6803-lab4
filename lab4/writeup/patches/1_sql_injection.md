@@ -1,7 +1,38 @@
-# Test Case: SQL Injection Fix (Vulnerability #1)
+# SQL Injection Patch Screenshots
 
-**Related file:** `sql_injection_test.py`
-**Patched code:** `app.py`, `login()`
+1. Navigate to the login page
+
+![Login Page](../images/login_page.png)
+
+2. Post the following input
+
+```
+' or 1=1 --
+```
+
+3. Receive the following output from a successful injection attack
+
+![SQLi](../images/sqli_exploit.png)
+
+4. Retrieve the payload of the users table data
+
+```
+:101:b'0123456789abcdef\xd7\xfa]\x82\xa1\xdf\x98\x9bu/\x06\x8d+vS\x7f\xddl\x02I\xe6\xb4\x80\xde\xbbw\xef\x10Q\xbbR\xe5\xb7\x9eqHq\xaf}\xf8':!Q#E%T&U8i6y4r2w
+```
+
+5. Decrypt the password and login with valid credentials
+
+![Successful Login](../images/successful_login.png)
+
+6. Fix the vulnerability through SQL parameterization
+
+![Vuln Fix Code](../images/vuln_fix_code.png)
+
+7. Test the vulnerability fix by posting the same input
+
+![Vuln Fix Test](../images/vuln_fix_test.png)
+
+# Test Cases
 
 ## 1. Test Case Description
 Verifies whether the `/login` route's password-check query is vulnerable to
@@ -61,14 +92,15 @@ differences. Including the legitimate-password check also confirms the
 fix does not break normal login functionality.
 
 ### New Functions
-- `build_test_db()` — creates an in-memory SQLite database with a `users`
+- `build_test_db()` - creates an in-memory SQLite database with a `users`
   table matching `schema.sql`, seeded with one test user. Used to isolate
   the test from the real `database.db` file.
-- `vulnerable_query(conn, password)` — reproduces the original Lab 3
+- `vulnerable_query(conn, password)` - reproduces the original Lab 3
   vulnerable query (string concatenation) for comparison purposes only;
   not used by the live application.
-- `patched_query(conn, password)` — runs the exact query currently in
+- `patched_query(conn, password)` - runs the exact query currently in
   `app.py`'s `login()` function, using parameter binding.
-- `test_sql_injection_patch()` — runs both queries against the same
+- `test_sql_injection_patch()` - runs both queries against the same
   injection payload and asserts the patched version returns no rows while
   also confirming legitimate logins still succeed.
+

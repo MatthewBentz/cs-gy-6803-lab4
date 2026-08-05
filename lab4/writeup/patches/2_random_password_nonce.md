@@ -1,4 +1,4 @@
-# Vulnerability #3 - Hardcoded Nonce Value for Password Encryption
+# Hardcoded Nonce Value for Password Encryption
 
 ## Vulnerability
 

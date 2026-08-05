@@ -1,34 +1,37 @@
-# [Lab 3](../../lab3.pdf) Writeup
+# [Lab 4](../../Lab%204.pdf) Writeup
 
-This file provides guidance on how to review this Lab 3 submission.
+This file provides guidance on how to review this Lab 4 submission.
 
 ## Risk Assessment
 
-In reference to the following risk table:
+In reference to the findings from the [patches](./patches) and [test cases](./test_cases), we have the following revised Risk Assessment:
+- [Risk Assessment.pdf](Risk%20Assessment.pdf).
 
-![Risk Table](../risk_table.png)
+## Patches
 
-We have the following [Risk Assessment.pdf](Risk%20Assessment.pdf).
+Each patch is contained in two parts:
+- `patches/*.md` that provides an overview of the code changed, the vulnerability testing results, applicable screenshots, and explanations for new functions.
+- `test_cases/*.py` that provides validation for the code change, as well as any applicable explanations of the relevant code change and testing methodology.
 
-## Coding Task 1
+### Patch 1 - SQL Injection:
 
-### SQL Injection
+- [Test Cases](./test_cases/1_sql_injection.py)
+- [Patch Writeup](./patches/1_sql_injection.md)
 
-Review the screenshots for SQL injection, payload extraction, password decryption, and successful login in this writeup.
-- [Coding Task 1 - SQLi.md](Coding%20Task%201%20-%20SQLi.md)
+### Patch 2 - Reused Nonce:
 
-Review the code used to decrypt the password in decrypt.py.
-- [work/decrypt.py](./work/decrypt.py)
+- [Test Cases](./test_cases/2_random_password_nonce.py)
+- [Patch Writeup](./patches/2_random_password_nonce.md)
 
-### Vulnerabilities
+### Patch 3 - Run Command Injection:
 
-Review the 5 new vulnerabilities, explanations identifying, the approach towards fixing in this writeup.
-- [Coding Task 1 - Vulns.md](Coding%20Task%201%20-%20Vulns.md)
+- [Test Cases](./test_cases/3_run_command_injection.py)
+- [Patch Writeup](./patches/3_run_command_injection.md)
 
-## Coding Task 2
+### Patch 4 - Socket Timeout (DoS):
 
-Review the patches for hardcoded password, token list, and plaintext auth in this writeup.
-- [Coding Task 2 - Vulns.md](Coding%20Task%202%20-%20Patches.md)
+- [Test Cases](./test_cases/4_socket_timeout.py)
+- [Patch Writeup](./patches/5_additional_patch_notes.md)
 
 ## Additional Notes
 
